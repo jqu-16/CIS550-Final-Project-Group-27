@@ -1,7 +1,8 @@
 # Get businesses with >x stars
-SELECT business_id
+SELECT business_id, name, stars
 FROM Business 
-WHERE stars > input.stars;
+WHERE stars > input.stars
+ORDER BY stars DESC;
 
 # Get open businesses on a day of the week
 SELECT business_id
