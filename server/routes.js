@@ -74,8 +74,48 @@ const closest = async function(req, res) {
     });
 }
 
-
-
+// recommend at most three things to do
+const todo = async function(req, res) {
+    const round = req.query.round ?? 1;
+    const lat = req.query.lat ?? 39.9526;
+    const lon = req.query.lon ?? -75.1652;
+    connection.query(`
+    WITH OpenBusinesses AS
+    (SELECT B.business_id, B.name
+    FROM Business B JOIN Hours H ON B.business_id = H.business_id
+    WHERE B.business_id IN
+    (SELECT business_id
+    FROM Hours
+    WHERE Hours.monday IS NOT NULL)),
+    
+    WithinDistanceBusiness AS
+    (SELECT O.business_id, O.name, L.longitude, L.latitude
+    FROM OpenBusinesses O JOIN Location L ON O.business_id = L.business_id
+    WHERE ROUND(L.latitude, ${round}) = ROUND(${lat}, ${round}) AND ROUND(L.longitude, ${round}) = ROUND(${lon}, ${round})),
+    
+    AttractionEdited AS
+    (SELECT A.name, A.X AS longitude, A.Y AS latitude
+    FROM Attraction A
+    WHERE ROUND(A.Y, ${round}) = ROUND(${lat}, ${round}) AND ROUND(A.X, ${round}) = ROUND(${lon}, ${round}))
+    
+    (SELECT *
+    FROM AttractionEdited
+    ORDER BY RAND()
+    LIMIT 3)
+    UNION
+    (SELECT w.name, w.longitude, w.latitude
+    FROM WithinDistanceBusiness w
+    ORDER BY RAND()
+    LIMIT 1)`
+      , (err, data) => {
+        if (err || data.length === 0) {
+          console.log(err);
+          res.json([]);
+        } else {
+          res.json(data);
+        }
+      });
+  }
 
 
 
@@ -367,6 +407,7 @@ module.exports = {
   businesses,
   business,
   closest,
+  todo,
   author,
   random,
   song,

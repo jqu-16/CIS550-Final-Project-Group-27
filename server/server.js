@@ -13,6 +13,7 @@ app.use(cors({
 app.get('/businesses', routes.businesses);
 app.get('/business/:business_id', routes.business);
 app.get('/closest', routes.closest);
+app.get('/todo', routes.todo);
 app.get('/author/:type', routes.author);
 app.get('/random', routes.random);
 app.get('/song/:song_id', routes.song);
