@@ -12,7 +12,7 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// Route 3: GET /song/:song_id
+// Route 1: GET /review/:review_id
 const review = async function(req, res) {
     // TODO (TASK 4): implement a route that given a song_id, returns all information about the song
     // Most of the code is already written for you, you just need to fill in the query
