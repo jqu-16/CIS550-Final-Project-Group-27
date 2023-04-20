@@ -12,24 +12,93 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// Route 1: GET /review/:review_id
-const review = async function(req, res) {
-    // TODO (TASK 4): implement a route that given a song_id, returns all information about the song
-    // Most of the code is already written for you, you just need to fill in the query
-    connection.query(`
-        SELECT *
-        FROM Songs
-        WHERE Songs.song_id = "${req.params.song_id}"`
-        , (err, data) => {
-        console.log(data);
-        if (err || data.length === 0) {
-        console.log(err);
-        res.json({});
-        } else {
-        res.json(data[0]);
-        }
-    });
+// GET /businesses
+const businesses = async function(req, res) {
+  
+  connection.query(`
+    SELECT *
+    FROM Business
+    LIMIT 100`
+    , (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+  //res.json([]); // replace this with your implementation
 }
+
+// GET /business
+const business = async function(req, res) {
+  connection.query(`
+    WITH OneBusiness AS (
+      SELECT business_id, name, stars, review_count
+      FROM Business
+      WHERE business_id = "${req.params.business_id}"
+    ),
+    OneLocation AS (
+      SELECT business_id, address, city, state
+      FROM Location
+      WHERE business_id = "${req.params.business_id}"
+    )
+    SELECT b.name, b.stars, b.review_count, l.address, l.city, l.state
+    FROM OneBusiness b, OneLocation l`
+    , (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data[0]);
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Route 1: GET /takeout
+const random = async function(req, res) {
+  connection.query(`
+      SELECT b.business_id, b.name
+      FROM Business b
+      JOIN Parking p ON b.business_id = p.business_id
+      WHERE p.RestaurantTakeOut = 1
+    `), (err, data) => {
+    console.log(data);
+    if (err || data.length == 0) {
+      console.log(err);
+      res.json({
+
+      })
+    }
+
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Route 13: GET /author/:type
 const author = async function(req, res) {
@@ -56,43 +125,17 @@ const author = async function(req, res) {
 // TEMPLATE COPIED FROM HW2, PLEASE COPY AND CHANGE ACCORDINGLY
 
 
-// Route 2: GET /random
-const random = async function(req, res) {
-  // you can use a ternary operator to check the value of request query values
-  // which can be particularly useful for setting the default value of queries
-  // note if users do not provide a value for the query it will be undefined, which is falsey
-  const explicit = req.query.explicit === 'true' ? 1 : 0;
 
-  // Here is a complete example of how to query the database in JavaScript.
-  // Only a small change (unrelated to querying) is required for TASK 3 in this route.
-  connection.query(`
-    SELECT *
-    FROM Songs
-    WHERE explicit <= ${explicit}
-    ORDER BY RAND()
-    LIMIT 1
-  `, (err, data) => {
-    if (err || data.length === 0) {
-      // if there is an error for some reason, or if the query is empty (this should not be possible)
-      // print the error message and return an empty object instead
-      console.log(err);
-      res.json({});
-    } else {
-      // Here, we return results of the query as an object, keeping only relevant data
-      // being song_id and title which you will add. In this case, there is only one song
-      // so we just directly access the first element of the query results array (data)
-      // TODO (TASK 3): also return the song title in the response
-      res.json({
-        song_id: data[0].song_id,
-        title: data[0].title
-      });
-    }
-  });
-}
+
+
+
 
 /********************************
  * BASIC SONG/ALBUM INFO ROUTES *
  ********************************/
+
+
+
 
 // Route 3: GET /song/:song_id
 const song = async function(req, res) {
@@ -100,8 +143,8 @@ const song = async function(req, res) {
   // Most of the code is already written for you, you just need to fill in the query
   connection.query(`
     SELECT *
-    FROM Songs
-    WHERE Songs.song_id = "${req.params.song_id}"`
+    FROM Business
+    LIMIT 1`
     , (err, data) => {
       console.log(data);
     if (err || data.length === 0) {
@@ -303,6 +346,8 @@ const search_songs = async function(req, res) {
 }
 
 module.exports = {
+  businesses,
+  business,
   author,
   random,
   song,
