@@ -55,6 +55,24 @@ const business = async function(req, res) {
   });
 }
 
+// GET /closest
+const closest = async function(req, res) {
+  const lat = req.query.lat ?? 39.9526;
+  const lon = req.query.lon ?? -75.1652;
+  const dist = req.query.dist ?? 10;
+  connection.query(`
+    SELECT O.business_id, O.name, O.stars, O.review_count, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
+    FROM Business O JOIN Location L ON O.business_id = L.business_id
+    WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}`
+    , (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+}
 
 
 
@@ -348,6 +366,7 @@ const search_songs = async function(req, res) {
 module.exports = {
   businesses,
   business,
+  closest,
   author,
   random,
   song,

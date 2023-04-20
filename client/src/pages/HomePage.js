@@ -1,90 +1,93 @@
 import { useEffect, useState } from 'react';
-import { Container, Divider, Link } from '@mui/material';
+import { Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField } from '@mui/material';
 import { NavLink } from 'react-router-dom';
+import { DataGrid } from '@mui/x-data-grid';
 
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
 const config = require('../config.json');
 
 export default function HomePage() {
-  // We use the setState hook to persist information across renders (such as the result of our API calls)
-  // const [songOfTheDay, setSongOfTheDay] = useState({});
-  // // TODO (TASK 13): add a state variable to store the app author (default to '')
-  // const [appAuthor, setAppAuthor] = useState('');
+  const [pageSize, setPageSize] = useState(10);
+  const [data, setData] = useState([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState(null);
 
-  // const [selectedSongId, setSelectedSongId] = useState(null);
+  const [lat, setLat] = useState([]);
+  const [lon, setLon] = useState([]);
+  const [dist, setDist] = useState([]);
 
-  // // The useEffect hook by default runs the provided callback after every render
-  // // The second (optional) argument, [], is the dependency array which signals
-  // // to the hook to only run the provided callback if the value of the dependency array
-  // // changes from the previous render. In this case, an empty array means the callback
-  // // will only run on the very first render.
-  // useEffect(() => {
-  //   // Fetch request to get the song of the day. Fetch runs asynchronously.
-  //   // The .then() method is called when the fetch request is complete
-  //   // and proceeds to convert the result to a JSON which is finally placed in state.
-  //   fetch(`http://${config.server_host}:${config.server_port}/random`)
-  //     .then(res => res.json())
-  //     .then(resJson => setSongOfTheDay(resJson));
+  useEffect(() => {
+    fetch(`http://${config.server_host}:${config.server_port}/closest`)
+      .then(res => res.json())
+      .then(resJson => {
+        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        setData(businessesWithId);
+      });
+  }, []);
 
-  //   // TODO (TASK 14): add a fetch call to get the app author (name not pennkey) and store it in the state variable
-  //   fetch(`http://${config.server_host}:${config.server_port}/author/name/`)
-  //     .then(res => res.text())
-  //     .then(resText => setAppAuthor(resText));
-  // }, []);
+  const search = () => {
+    fetch(`http://${config.server_host}:${config.server_port}/closest?lat=${lat}` +
+      `&lon=${lon}` +
+      `&dist=${dist}`
+    )
+      .then(res => res.json())
+      .then(resJson => {
+        // DataGrid expects an array of objects with a unique id.
+        // To accomplish this, we use a map with spread syntax (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
+        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        setData(businessesWithId);
+      });
+  }
 
-  // Here, we define the columns of the "Top Songs" table. The songColumns variable is an array (in order)
-  // of objects with each object representing a column. Each object has a "field" property representing
-  // what data field to display from the raw data, "headerName" property representing the column label,
-  // and an optional renderCell property which given a row returns a custom JSX element to display in the cell.
-  // const songColumns = [
-  //   {
-  //     field: 'title',
-  //     headerName: 'Song Title',
-  //     renderCell: (row) => <Link onClick={() => setSelectedSongId(row.song_id)}>{row.title}</Link> // A Link component is used just for formatting purposes
-  //   },
-  //   {
-  //     field: 'album',
-  //     headerName: 'Album',
-  //     renderCell: (row) => <NavLink to={`/albums/${row.album_id}`}>{row.album}</NavLink> // A NavLink component is used to create a link to the album page
-  //   },
-  //   {
-  //     field: 'plays',
-  //     headerName: 'Plays'
-  //   },
-  // ];
+  // This defines the columns of the table of songs used by the DataGrid component.
+  // The format of the columns array and the DataGrid component itself is very similar to our
+  // LazyTable component. The big difference is we provide all data to the DataGrid component
+  // instead of loading only the data we need (which is necessary in order to be able to sort by column)
+  const columns = [
+    { field: 'name', headerName: 'Name', width: 300, renderCell: (params) => (
+        <Link onClick={() => setSelectedBusinessId(params.row.business_id)}>{params.value}</Link>
+    ) },
+    { field: 'name', headerName: 'Name' },
+    { field: 'stars', headerName: 'Stars' },
+    { field: 'review_count', headerName: 'Review Count' },
+    { field: 'dist', headerName: 'Distance' }
+  ]
 
-  // // TODO (TASK 15): define the columns for the top albums (schema is Album Title, Plays), where Album Title is a link to the album page
-  // // Hint: this should be very similar to songColumns defined above, but has 2 columns instead of 3
-  // const albumColumns = [
-  //   {
-  //     field: 'title',
-  //     headerName: 'Album Title',
-  //     renderCell: (row) => <NavLink to={`/albums/${row.album_id}`}>{row.title}</NavLink>
-  //   },
-  //   {
-  //     field: 'plays',
-  //     headerName: 'Plays'
-  //   },
-  // ]
-
-  // return (
-  //   <Container>
-  //     {/* SongCard is a custom component that we made. selectedSongId && <SongCard .../> makes use of short-circuit logic to only render the SongCard if a non-null song is selected */}
-  //     {selectedSongId && <SongCard songId={selectedSongId} handleClose={() => setSelectedSongId(null)} />}
-  //     <h2>Check out your song of the day:&nbsp;
-  //       <Link onClick={() => setSelectedSongId(songOfTheDay.song_id)}>{songOfTheDay.title}</Link>
-  //     </h2>
-  //     <Divider />
-  //     <h2>Top Songs</h2>
-  //     <LazyTable route={`http://${config.server_host}:${config.server_port}/top_songs`} columns={songColumns} />
-  //     <Divider />
-  //     {/* TODO (TASK 16): add a h2 heading, LazyTable, and divider for top albums. Set the LazyTable's props for defaultPageSize to 5 and rowsPerPageOptions to [5, 10] */}
-  //     <h2>Top Albums</h2>
-  //     <LazyTable route={`http://${config.server_host}:${config.server_port}/top_albums`} columns={albumColumns} defaultPageSize={5} rowsPerPageOptions={[5, 10]} />
-  //     <Divider />
-  //     {/* TODO (TASK 17): add a paragraph (<p>text</p>) that displays the value of your author state variable from TASK 13 */}
-  //     <p>{appAuthor}</p>
-  //   </Container>
-  // );
+  // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
+  // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
+  // (optionally has spacing prop that specifies the distance between grid items). Then, enclose whatever
+  // component you want in a <Grid item xs={}> tag where xs is a number between 1 and 12. Each row of the
+  // grid is 12 units wide and the xs attribute specifies how many units the grid item is. So if you want
+  // two grid items of the same size on the same row, define two grid items with xs={6}. The Grid container
+  // will automatically lay out all the grid items into rows based on their xs values.
+  return (
+    <Container>
+      <h2>Search Songs</h2>
+      <Grid container spacing={6}>
+        <Grid item xs={8}>
+          <TextField name='lat_field' label='Latitude' value={lat} onChange={(e) => setLat(e.target.value)} style={{ width: "100%" }}/>
+        </Grid>
+        <Grid item xs={8}>
+          <TextField name='lon_field' label='Longitude' value={lon} onChange={(e) => setLon(e.target.value)} style={{ width: "100%" }}/>
+        </Grid>
+        <Grid item xs={8}>
+          <TextField name='dist_field' label='Distance' value={dist} onChange={(e) => setDist(e.target.value)} style={{ width: "100%" }}/>
+        </Grid>
+        
+      </Grid>
+      <Button onClick={() => search() } style={{ left: '50%', transform: 'translateX(-50%)' }}>
+        Search
+      </Button>
+      <h2>Results</h2>
+      {/* Notice how similar the DataGrid component is to our LazyTable! What are the differences? */}
+      <DataGrid
+        rows={data}
+        columns={columns}
+        pageSize={pageSize}
+        rowsPerPageOptions={[5, 10, 25]}
+        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+        autoHeight
+      />
+    </Container>
+  );
 };
