@@ -1,46 +1,52 @@
-import { AppBar, Container, Toolbar, Typography } from '@mui/material'
-import { NavLink } from 'react-router-dom';
-
-// The hyperlinks in the NavBar contain a lot of repeated formatting code so a
-// helper component NavText local to the file is defined to prevent repeated code.
-const NavText = ({ href, text, isMain }) => {
-  return (
-    <Typography
-      variant={isMain ? 'h5' : 'h7'}
-      noWrap
-      style={{
-        marginRight: '30px',
-        fontFamily: 'monospace',
-        fontWeight: 700,
-        letterSpacing: '.3rem',
-      }}
-    >
-      <NavLink
-        to={href}
-        style={{
-          color: 'inherit',
-          textDecoration: 'none',
-        }}
-      >
-        {text}
-      </NavLink>
-    </Typography>
-  )
-}
+import { AppBar, Container, Toolbar, Typography, Box, Tabs, Tab, Link } from '@mui/material';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import AttractionsIcon from '@mui/icons-material/Attractions';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 // Here, we define the NavBar. Note that we heavily leverage MUI components
 // to make the component look nice. Feel free to try changing the formatting
 // props to how it changes the look of the component.
+
 export default function NavBar() {
+  const navigate = useNavigate();
+  const [selected, setSelected] = useState(window.sessionStorage.getItem('selected') ? parseInt(window.sessionStorage.getItem('selected')) : 0);
+
+  const navRestaurants = () => {
+    navigate('/restaurants');
+    window.sessionStorage.setItem('selected', 0);
+    setSelected(0);
+  };
+
+  const navAttractions = () => {
+    navigate('/attractions');
+    window.sessionStorage.setItem('selected', 1);
+    setSelected(1);
+  };
+
   return (
-    <AppBar position='static'>
-      <Container maxWidth='xl'>
-        <Toolbar disableGutters>
-          <NavText href='/' text='TRAVEL BUDDY' isMain />
-          <NavText href='/businesses' text='Businesses' />
-          <NavText href='/attractions' text='Attractions' />
-        </Toolbar>
-      </Container>
-    </AppBar>
+    <div>
+      <AppBar position='static' elevation={0} sx={{height: '75px'}}>
+        <Container maxWidth='xl'>
+          <Toolbar disableGutters sx={{pt: '10px'}}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}>
+              <TravelExploreIcon sx={{width: '35px', height: '35px'}} />
+              <Typography variant='h5' ml='10px'>Travel Buddy</Typography>
+            </div>  
+          </Toolbar>
+        </Container>
+      </AppBar>
+      <Box sx={{ width: '100%' }}>
+        <Tabs centered value={selected} sx={{mt: '20px'}}>
+          <Tab icon={<RestaurantIcon />} label="Restaurants" onClick={navRestaurants} />
+          <Tab icon={<AttractionsIcon />} label="Attractions" onClick={navAttractions} />
+        </Tabs>
+      </Box>
+    </div>
   );
 }
