@@ -91,8 +91,11 @@ const closest = async function(req, res) {
   const dist = req.query.dist ?? 10;
   connection.query(`
     SELECT O.business_id, O.name, O.stars, O.review_count, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
-    FROM Business O JOIN Location L ON O.business_id = L.business_id
+    FROM Business O 
+    JOIN Location L ON O.business_id = L.business_id
+    JOIN Category c ON O.business_id = c.business_id
     WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}
+    AND c.category_name LIKE 'Restaurants'
     ORDER BY dist ASC`
     , (err, data) => {
       if (err || data.length === 0) {
