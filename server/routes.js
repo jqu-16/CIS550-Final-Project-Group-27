@@ -33,8 +33,11 @@ const business = async function(req, res) {
   connection.query(`
     WITH OneBusiness AS (
       SELECT business_id, name, stars, review_count
-      FROM Business
-      WHERE business_id = "${req.params.business_id}"
+      FROM Business b
+      JOIN Category c
+      ON b.business_id = c.business_id
+      WHERE business_id = "${req.params.business_id}
+      AND c.category_name LIKE 'Restaurants'"
     ),
     OneLocation AS (
       SELECT business_id, address, city, state

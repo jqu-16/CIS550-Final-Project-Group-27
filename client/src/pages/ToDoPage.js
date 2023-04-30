@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography } from '@mui/material';
+import { Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import { NavLink } from 'react-router-dom';
@@ -22,9 +22,8 @@ export default function ToDoPage() {
     fetch(`http://${config.server_host}:${config.server_port}/todo`)
       .then(res => res.json())
       .then(resJson => {
-        console.log("hello")
         console.log(resJson);
-        const businessesWithId = resJson.map((business) => ({ id: business.name, ...business }));
+        const businessesWithId = resJson.map((business, index) => ({ id: index, ...business }));
         setData(businessesWithId);
         setTimeout(() => {
           setLoaded(true);
@@ -36,16 +35,18 @@ export default function ToDoPage() {
     console.log("before");
     setLoaded(false);
     console.log("before2");
-    fetch(`http://${config.server_host}:${config.server_port}/todo?lat=${lat}` +
-      `&lon=${lon}` +
-      `&dist=${dist}`
+    fetch(`http://${config.server_host}:${config.server_port}/todo?lat=${lat} +
+      &lon=${lon} +
+      &dist=${dist}`
     )
-      .then(res => {res.json(); console.log("first then")})
+      .then(res => res.json())
       .then(resJson => {
         // DataGrid expects an array of objects with a unique id.
         // To accomplish this, we use a map with spread syntax (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
         console.log("inside then")
-        const businessesWithId = resJson.map((business) => ({ id: business.name, ...business }));
+        console.log(resJson);
+        // http://localhost:8080/todo?lat=29.954421&lon=-90.066475&dist=10
+        const businessesWithId = resJson.map((business, index) => ({ id: index, ...business }));
         setData(businessesWithId);
         setTimeout(() => {
           setLoaded(true);
@@ -61,19 +62,6 @@ export default function ToDoPage() {
       setErrorMessage('Please fill out all fields.')
     }
   };
-
-  const columns = [
-    /*{ field: 'title', headerName: 'Title', width: 300, renderCell: (params) => (
-        <Link onClick={() => setSelectedSongId(params.row.song_id)}>{params.value}</Link>
-    ) },*/
-    //{ field: 'title', headerName: 'Title', width: 300, renderCell: (params) => ()},
-    { field: 'name', headerName: 'Name of Business' }
-    /*{ field: 'energy', headerName: 'Energy' },
-    { field: 'valence', headerName: 'Valence' },
-    { field: 'tempo', headerName: 'Tempo' },
-    { field: 'key_mode', headerName: 'Key' },
-    { field: 'explicit', headerName: 'Explicit' },*/
-  ]
 
   // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
   // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
@@ -112,16 +100,38 @@ export default function ToDoPage() {
           </Button>
         </Box>
       </Container>
-      <h2>Planned Itinerary</h2>
+      <h2>Suggested Itineraries</h2>
       {/* Notice how similar the DataGrid component is to our LazyTable! What are the differences? */}
-      <DataGrid
-        rows={data}
-        columns={columns}
-        //pageSize={pageSize}
-        //rowsPerPageOptions={[5, 10, 25]}
-        //onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-        autoHeight
-      />
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell key='#'>Itinerary</TableCell>
+              <TableCell key='r'>Business</TableCell>
+              <TableCell key='a1'>Attraction 1</TableCell>
+              <TableCell key='a2'>Attraction 2</TableCell>
+              <TableCell key='a3'>Attraction 3</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {
+              // TODO (TASK 23): render the table content by mapping the songData array to <TableRow> elements
+              // Hint: the skeleton code for the very first row is provided for you. Fill out the missing information and then use a map function to render the rest of the rows.
+              // Hint: it may be useful to refer back to LazyTable.js
+              // this maps each entry of songData to a row
+              data.map((row, idx) =>
+                <TableRow key={idx}>
+                  <TableCell key='#'>{idx + 1}</TableCell>
+                  <TableCell key='r'>{data[idx].Bname}</TableCell>
+                  <TableCell key='a1'>{data[idx].W1name}</TableCell>
+                  <TableCell key='a2'>{data[idx].W2name}</TableCell>
+                  <TableCell key='a3'>{data[idx].W3name}</TableCell>
+                </TableRow>
+              )
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 };

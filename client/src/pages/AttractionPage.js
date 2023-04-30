@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography } from '@mui/material';
+import { Stack, Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import { NavLink } from 'react-router-dom';
@@ -24,7 +24,7 @@ export default function AttractionPage() {
       .then(res => res.json())
       .then(resJson => {
         //const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
-        setData(resJson.name);
+        setData(resJson);
         setTimeout(() => {
           setLoaded(true);
         }, 200);
@@ -67,51 +67,22 @@ export default function AttractionPage() {
   // will automatically lay out all the grid items into rows based on their xs values.
   return (
     <Container>
-      <h2>Search</h2>
-      <Container 
-        sx={{
-          border: 1,
-          borderColor: '#CFD9DC',
-          borderRadius: '5px',
-          pt: '10px',
-          pb: '20px',
-        }} 
-      >
-        <Typography color='error'>{errorMessage}</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <TextField variant='standard' size='small' name='lat_field' label='Latitude' value={lat} onChange={(e) => setLat(e.target.value)} style={{ width: "100%" }}/>
-          </Grid>
-          <Grid item xs={4}>
-            <TextField variant='standard' size='small' name='lon_field' label='Longitude' value={lon} onChange={(e) => setLon(e.target.value)} style={{ width: "100%" }}/>
-          </Grid>
-          <Grid item xs={4}>
-            <TextField variant='standard' size='small' name='dist_field' label='Distance (km)' value={dist} onChange={(e) => setDist(e.target.value)} style={{ width: "100%" }}/>
-          </Grid>
-        </Grid>
-        <Box sx={{mt: '20px'}}>
-          <Button variant='contained' size='small' disableElevation onClick={handleSearchClick}>
-            Search
-          </Button>
-        </Box>
-      </Container>
-      <h2>Attractions</h2>
-      {loaded
-        ? 
-          <Grid container spacing={2}>
-            {data.map((value, i) => (
-              <Grid key={i} item xs={6} md={4}>
-                <AttractionCard 
-                  key={i}
-                  business_id={value.business_id}
-                  name={value.name}
-                  dist={value.dist}
-                />
+      <Stack direction='row' justify='center'>
+        <Stack>
+          <Container>
+            {data && (
+              <Grid container spacing={2}>
+                {data.map((item, index) => (
+                  <Grid key={index} item xs={12} md={6}>
+                    <AttractionCard name={item.name} dist={item.dist} />
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        : <LinearProgress />
-      }
+            )}
+          </Container>
+        </Stack>
+      </Stack>
+      
     </Container>
   );
 };
