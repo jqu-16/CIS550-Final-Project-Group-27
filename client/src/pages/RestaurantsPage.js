@@ -123,7 +123,7 @@ export default function RestaurantsPage() {
   <Button component={Link} to="/topRestaurants" size='small' onClick={handleTopClick} color="primary" variant="contained">
     Explore Top Restaurants in the Country!
   </Button>
-</Typography>
+</Typography><br></br>
       {loaded
         ? 
           <Grid container spacing={2}>
