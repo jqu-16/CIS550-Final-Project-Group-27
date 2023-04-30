@@ -69,7 +69,8 @@ const closest = async function(req, res) {
   connection.query(`
     SELECT O.business_id, O.name, O.stars, O.review_count, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
     FROM Business O JOIN Location L ON O.business_id = L.business_id
-    WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}`
+    WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}
+    ORDER BY dist ASC`
     , (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
@@ -84,11 +85,12 @@ const closest = async function(req, res) {
 const closestAttraction = async function(req, res) {
   const lat = req.query.lat ?? 39.9526;
   const lon = req.query.lon ?? -75.1652;
-  const dist = req.query.dist ?? 20;
+  const dist = req.query.dist ?? 10;
   connection.query(`
-    SELECT a.name, (ACOS(SIN(${lat}) * SIN(a.Y) + COS(${lat}) * COS(a.Y) * COS(a.X - ${lon})) * 6371) as dist
+    SELECT a.name, (ACOS(SIN(${lat}* PI()/180) * SIN(a.Y* PI()/180) + COS(${lat}* PI()/180) * COS(a.Y* PI()/180) * COS(a.X* PI()/180 - ${lon}* PI()/180)) * 6371) as dist
     FROM Attraction a
-    WHERE ACOS(SIN(${lat}) * SIN(a.Y) + COS(${lat}) * COS(a.Y) * COS(a.X - ${lon})) * 6371 < ${dist}`
+    WHERE ACOS(SIN(${lat}* PI()/180) * SIN(a.Y* PI()/180) + COS(${lat}* PI()/180) * COS(a.Y* PI()/180) * COS(a.X* PI()/180 - ${lon}* PI()/180)) * 6371 < ${dist}
+    ORDER BY dist ASC`
     , (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
