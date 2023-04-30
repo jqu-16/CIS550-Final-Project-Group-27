@@ -26,12 +26,13 @@ export default function BusinessInfoPage() {
           <h2>Address: {businessData[0].address}</h2>
           <h2>City: {businessData[0].city}</h2>
           <h2>State: {businessData[0].state}</h2>
-          <h2>{businessData.length} reviews: </h2>
+          <h2>{businessData.length === 50 ? `${businessData.length}+ reviews:` : `${businessData.length} reviews:`}</h2>
+
           <Container>
             {businessData && (
               <Grid container spacing={2}>
                 {businessData.map((item, index) => (
-                  <Grid key={index} item xs={12} md={6}>
+                  <Grid key={index-1} item xs={12} md={6}>
                     <ReviewCard name={item.user_name} date = {item.user_date} stars={item.stars} text={item.text} />
                   </Grid>
                 ))}

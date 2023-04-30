@@ -46,7 +46,8 @@ import {
                 >
                   {props.name}
                 </Typography>
-                <Typography variant='body2'>{`${(Math.round(props.dist * 100) / 100).toFixed(2)} mi`}</Typography>
+                {props.dist ? <Typography variant='body2'>{`${(Math.round(props.dist * 100) / 100).toFixed(2)} mi`}</Typography> : null}
+                {props.city ? <Typography variant='body2'>{props.city}</Typography> : null}
                 <Typography variant='body2'>{`${props.review_count} reviews`}</Typography>
               </Stack>
               <Rating value={parseFloat(props.stars)} precision={0.5} size='small' readOnly />
