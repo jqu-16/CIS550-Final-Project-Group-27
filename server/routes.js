@@ -121,15 +121,21 @@ const todo = async function(req, res) {
     WithinDistanceAttraction1 AS
     (SELECT A.name, X, Y, W.name AS Bname
     FROM WithinDistanceAttractionTemp A, WithinDistanceBusiness W
-    WHERE ACOS(SIN(W.latitude) * SIN(Y) + COS(W.latitude) * COS(Y) * COS(W.longitude - X)) * 6371 < ${dist}),
+    WHERE ACOS(SIN(W.latitude) * SIN(Y) + COS(W.latitude) * COS(Y) * COS(W.longitude - X)) * 6371 < ${dist}
+    ORDER BY RAND()
+    LIMIT 20),
     WithinDistanceAttraction2 AS
     (SELECT A.name, A.X, A.Y, W1.name AS W1name, Bname
     FROM WithinDistanceAttractionTemp A, WithinDistanceAttraction1 W1
-    WHERE ACOS(SIN(A.Y) * SIN(W1.Y) + COS(A.Y) * COS(W1.Y) * COS(A.X - W1.X)) * 6371 < ${dist}),
+    WHERE ACOS(SIN(A.Y) * SIN(W1.Y) + COS(A.Y) * COS(W1.Y) * COS(A.X - W1.X)) * 6371 < ${dist}
+    ORDER BY RAND()
+    LIMIT 20),
     WithinDistanceAttraction3 AS
     (SELECT A.name, A.X, A.Y, W2.name AS W2name, W1name, Bname
     FROM WithinDistanceAttractionTemp A, WithinDistanceAttraction2 W2
-    WHERE ACOS(SIN(A.Y) * SIN(W2.Y) + COS(A.Y) * COS(W2.Y) * COS(A.X - W2.X)) * 6371 < ${dist})
+    WHERE ACOS(SIN(A.Y) * SIN(W2.Y) + COS(A.Y) * COS(W2.Y) * COS(A.X - W2.X)) * 6371 < ${dist}
+    ORDER BY RAND()
+    LIMIT 5)
     SELECT Bname, W1name, W2name, W3.name AS W3name
     FROM WithinDistanceAttraction3 W3`
       , (err, data) => {
