@@ -67,6 +67,35 @@ export default function AttractionPage() {
   // will automatically lay out all the grid items into rows based on their xs values.
   return (
     <Container>
+      <h2>Enter Your Current Location...</h2>
+      <Container 
+        sx={{
+          border: 1,
+          borderColor: '#CFD9DC',
+          borderRadius: '5px',
+          pt: '10px',
+          pb: '20px',
+        }} 
+      >
+        <Typography color='error'>{errorMessage}</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={4}>
+            <TextField variant='standard' size='small' name='lat_field' label='Latitude' value={lat} onChange={(e) => setLat(e.target.value)} style={{ width: "100%" }}/>
+          </Grid>
+          <Grid item xs={4}>
+            <TextField variant='standard' size='small' name='lon_field' label='Longitude' value={lon} onChange={(e) => setLon(e.target.value)} style={{ width: "100%" }}/>
+          </Grid>
+          <Grid item xs={4}>
+            <TextField variant='standard' size='small' name='dist_field' label='Distance (km)' value={dist} onChange={(e) => setDist(e.target.value)} style={{ width: "100%" }}/>
+          </Grid>
+        </Grid>
+        <Box sx={{mt: '20px'}}>
+          <Button variant='contained' size='small' disableElevation onClick={handleSearchClick}>
+            Search
+          </Button>
+        </Box>
+      </Container>
+      <h2>Local Attractions</h2>
       <Stack direction='row' justify='center'>
         <Stack>
           <Container>
