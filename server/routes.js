@@ -74,37 +74,36 @@ const closest = async function(req, res) {
 
 // recommend at most three things to do
 const todo = async function(req, res) {
-    const round = req.query.round ?? 1;
+    const dist = req.query.dist ?? 10;
     const lat = req.query.lat ?? 39.9526;
     const lon = req.query.lon ?? -75.1652;
     connection.query(`
-    WITH OpenBusinesses AS
-    (SELECT B.business_id, B.name
-    FROM Business B JOIN Hours H ON B.business_id = H.business_id
-    WHERE B.business_id IN
-    (SELECT business_id
-    FROM Hours
-    WHERE Hours.monday IS NOT NULL)),
-    
+    WITH WithinDistanceBusinessTemp AS
+    (SELECT B.business_id, name
+    FROM Business B JOIN Location L ON B.business_id = L.business_id
+    WHERE L.latitude <= ${lat} + ${dist}/111 AND L.latitude >= ${lat} - ${dist}/111 AND L.longitude <= ${lon} + ${dist}/111 AND L.longitude >= ${lon} - ${dist}/111),
+    WithinDistanceAttractionTemp AS
+    (SELECT name, X * PI()/180 AS X, Y * PI()/180 AS Y
+    FROM Attraction
+    WHERE Y <= ${lat} + 3 * ${dist}/111 AND Y >= ${lat} - 3 * ${dist}/111 AND X <= ${lon} + 3 * ${dist}/111 AND X >= ${lon} - 3 * ${dist}/111),
     WithinDistanceBusiness AS
-    (SELECT O.business_id, O.name, L.longitude, L.latitude
-    FROM OpenBusinesses O JOIN Location L ON O.business_id = L.business_id
-    WHERE ROUND(L.latitude, ${round}) = ROUND(${lat}, ${round}) AND ROUND(L.longitude, ${round}) = ROUND(${lon}, ${round})),
-    
-    AttractionEdited AS
-    (SELECT A.name, A.X AS longitude, A.Y AS latitude
-    FROM Attraction A
-    WHERE ROUND(A.Y, ${round}) = ROUND(${lat}, ${round}) AND ROUND(A.X, ${round}) = ROUND(${lon}, ${round}))
-    
-    (SELECT *
-    FROM AttractionEdited
-    ORDER BY RAND()
-    LIMIT 3)
-    UNION
-    (SELECT w.name, w.longitude, w.latitude
-    FROM WithinDistanceBusiness w
-    ORDER BY RAND()
-    LIMIT 1)`
+    (SELECT O.business_id, name, L.latitude * PI()/180 AS latitude, L.longitude * PI()/180 AS longitude
+    FROM WithinDistanceBusinessTemp O JOIN Location L ON O.business_id = L.business_id
+    WHERE ACOS(SIN(${lat} * PI()/180) * SIN(latitude * PI()/180) + COS(${lat} * PI()/180) * COS(latitude * PI()/180) * COS((longitude - ${lon}) * PI()/180)) * 6371 < ${dist}),
+    WithinDistanceAttraction1 AS
+    (SELECT A.name, X, Y, W.name AS Bname
+    FROM WithinDistanceAttractionTemp A, WithinDistanceBusiness W
+    WHERE ACOS(SIN(W.latitude) * SIN(Y) + COS(W.latitude) * COS(Y) * COS(W.longitude - X)) * 6371 < ${dist}),
+    WithinDistanceAttraction2 AS
+    (SELECT A.name, A.X, A.Y, W1.name AS W1name, Bname
+    FROM WithinDistanceAttractionTemp A, WithinDistanceAttraction1 W1
+    WHERE ACOS(SIN(A.Y) * SIN(W1.Y) + COS(A.Y) * COS(W1.Y) * COS(A.X - W1.X)) * 6371 < ${dist}),
+    WithinDistanceAttraction3 AS
+    (SELECT A.name, A.X, A.Y, W2.name AS W2name, W1name, Bname
+    FROM WithinDistanceAttractionTemp A, WithinDistanceAttraction2 W2
+    WHERE ACOS(SIN(A.Y) * SIN(W2.Y) + COS(A.Y) * COS(W2.Y) * COS(A.X - W2.X)) * 6371 < ${dist})
+    SELECT Bname, W1name, W2name, W3.name AS W3name
+    FROM WithinDistanceAttraction3 W3`
       , (err, data) => {
         if (err || data.length === 0) {
           console.log(err);
