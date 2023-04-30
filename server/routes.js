@@ -50,7 +50,8 @@ const business = async function(req, res) {
     )
     SELECT b.name, b.stars AS overall_stars, b.review_count, l.address, l.city, l.state, r.*
     FROM OneBusiness b, OneLocation l, OneReview r
-    ORDER BY r.date DESC`
+    ORDER BY r.date DESC
+    LIMIT 50`
     , (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
@@ -61,18 +62,18 @@ const business = async function(req, res) {
   });
 }
 
-const top_restaurants = async function(req, res) {
+const topRestaurants = async function(req, res) {
   const lat = req.query.lat ?? 39.9526;
   const lon = req.query.lon ?? -75.1652;
   const dist = req.query.dist ?? 10;
   connection.query(`
-    SELECT O.business_id, O.name, O.stars, O.review_count, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
-    FROM Business O JOIN Location L ON O.business_id = L.business_id
-    WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}
-    AND O.review_count >= 20
-    AND O.stars > 4
-    ORDER BY dist ASC
-    LIMIT 5
+    SELECT O.*, l.city
+    FROM Business O 
+    JOIN Location l
+    ON l.business_id = O.business_id
+    WHERE stars > 4
+    ORDER BY review_count DESC
+    LIMIT 42
     `
     , (err, data) => {
       if (err || data.length === 0) {
@@ -91,8 +92,11 @@ const closest = async function(req, res) {
   const dist = req.query.dist ?? 10;
   connection.query(`
     SELECT O.business_id, O.name, O.stars, O.review_count, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
-    FROM Business O JOIN Location L ON O.business_id = L.business_id
+    FROM Business O 
+    JOIN Location L ON O.business_id = L.business_id
+    JOIN Category c ON O.business_id = c.business_id
     WHERE ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371 < ${dist}
+    AND c.category_name LIKE 'Restaurants'
     ORDER BY dist ASC`
     , (err, data) => {
       if (err || data.length === 0) {
@@ -261,4 +265,5 @@ module.exports = {
   closestAttraction,
   elitetop,
   random,
+  topRestaurants
 }
