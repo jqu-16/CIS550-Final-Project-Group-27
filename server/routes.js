@@ -40,15 +40,23 @@ const business = async function(req, res) {
       SELECT business_id, address, city, state
       FROM Location
       WHERE business_id = "${req.params.business_id}"
+    ), 
+    OneReview AS (
+      SELECT r.*, u.name AS user_name, date AS user_date
+      FROM Review r
+      JOIN Business b ON r.business_id = b.business_id
+      JOIN User u ON u.user_id = r.user_id
+      WHERE r.business_id = "${req.params.business_id}"
     )
-    SELECT b.name, b.stars, b.review_count, l.address, l.city, l.state
-    FROM OneBusiness b, OneLocation l`
+    SELECT b.name, b.stars AS overall_stars, b.review_count, l.address, l.city, l.state, r.*
+    FROM OneBusiness b, OneLocation l, OneReview r
+    ORDER BY r.date DESC`
     , (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
       res.json({});
     } else {
-      res.json(data[0]);
+      res.json(data);
     }
   });
 }
@@ -72,7 +80,27 @@ const closest = async function(req, res) {
     });
 }
 
+// GET /closestAttraction
+const closestAttraction = async function(req, res) {
+  const lat = req.query.lat ?? 39.9526;
+  const lon = req.query.lon ?? -75.1652;
+  const dist = req.query.dist ?? 20;
+  connection.query(`
+    SELECT a.name, (ACOS(SIN(${lat}) * SIN(a.Y) + COS(${lat}) * COS(a.Y) * COS(a.X - ${lon})) * 6371) as dist
+    FROM Attraction a
+    WHERE ACOS(SIN(${lat}) * SIN(a.Y) + COS(${lat}) * COS(a.Y) * COS(a.X - ${lon})) * 6371 < ${dist}`
+    , (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+}
+
 // recommend at most three things to do
+// GET /todo
 const todo = async function(req, res) {
     const dist = req.query.dist ?? 10;
     const lat = req.query.lat ?? 39.9526;
@@ -159,5 +187,6 @@ module.exports = {
   closest,
   todo,
   author,
+  closestAttraction,
   random,
 }

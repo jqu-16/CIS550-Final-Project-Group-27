@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Container, Grid, Rating, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import ReviewCard from '../components/ReviewCard';
 
 const config = require('../config.json');
 
@@ -19,12 +20,24 @@ export default function BusinessInfoPage() {
     <Container>
       <Stack direction='row' justify='center'>
         <Stack>
-          <h1 style={{ fontSize: 64 }}>{businessData.name}</h1>
-          <h2>Stars: {businessData.stars}</h2>
-          <h2>Reviews: {businessData.review_count}</h2>
-          <h2>Address: {businessData.address}</h2>
-          <h2>City: {businessData.city}</h2>
-          <h2>State: {businessData.state}</h2>
+          <h1 style={{ fontSize: 64 }}>{businessData[0].name}</h1>
+          {/* <h2> Rating: <Rating value={businessData[0].stars} precision={0.1} readOnly /></h2> */}
+          <h2>Rating: {businessData[0].stars} / 5</h2>
+          <h2>Address: {businessData[0].address}</h2>
+          <h2>City: {businessData[0].city}</h2>
+          <h2>State: {businessData[0].state}</h2>
+          <h2>{businessData.length} reviews: </h2>
+          <Container>
+            {businessData && (
+              <Grid container spacing={2}>
+                {businessData.map((item, index) => (
+                  <Grid key={index} item xs={12} md={6}>
+                    <ReviewCard name={item.user_name} date = {item.user_date} stars={item.stars} text={item.text} />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Container>
         </Stack>
       </Stack>
       

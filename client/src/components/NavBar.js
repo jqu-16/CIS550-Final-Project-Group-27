@@ -25,6 +25,12 @@ export default function NavBar() {
     setSelected(1);
   };
 
+  const navItinerary = () => {
+    navigate('/todo');
+    window.sessionStorage.setItem('selected', 2);
+    setSelected(2);
+  };
+
   return (
     <div>
       <AppBar position='static' elevation={0} sx={{height: '75px'}}>
@@ -45,6 +51,7 @@ export default function NavBar() {
         <Tabs centered value={selected} sx={{mt: '20px'}}>
           <Tab icon={<RestaurantIcon />} label="Restaurants" onClick={navRestaurants} />
           <Tab icon={<AttractionsIcon />} label="Attractions" onClick={navAttractions} />
+          <Tab icon={<RestaurantIcon />} label="Itinerary" onClick={navItinerary} />
         </Tabs>
       </Box>
     </div>

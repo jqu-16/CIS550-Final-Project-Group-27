@@ -10,7 +10,7 @@ import RestaurantCard from '../components/RestaurantCard';
 
 const config = require('../config.json');
 
-export default function RestaurantsPage() {
+export default function ToDoPage() {
   const [data, setData] = useState([]);
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
@@ -19,10 +19,12 @@ export default function RestaurantsPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    fetch(`http://${config.server_host}:${config.server_port}/closest`)
+    fetch(`http://${config.server_host}:${config.server_port}/todo`)
       .then(res => res.json())
       .then(resJson => {
-        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        console.log("hello")
+        console.log(resJson);
+        const businessesWithId = resJson.map((business) => ({ id: business.name, ...business }));
         setData(businessesWithId);
         setTimeout(() => {
           setLoaded(true);
@@ -31,16 +33,19 @@ export default function RestaurantsPage() {
   }, []);
 
   const search = () => {
+    console.log("before");
     setLoaded(false);
-    fetch(`http://${config.server_host}:${config.server_port}/closest?lat=${lat}` +
+    console.log("before2");
+    fetch(`http://${config.server_host}:${config.server_port}/todo?lat=${lat}` +
       `&lon=${lon}` +
       `&dist=${dist}`
     )
-      .then(res => res.json())
+      .then(res => {res.json(); console.log("first then")})
       .then(resJson => {
         // DataGrid expects an array of objects with a unique id.
         // To accomplish this, we use a map with spread syntax (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
-        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        console.log("inside then")
+        const businessesWithId = resJson.map((business) => ({ id: business.name, ...business }));
         setData(businessesWithId);
         setTimeout(() => {
           setLoaded(true);
@@ -57,6 +62,19 @@ export default function RestaurantsPage() {
     }
   };
 
+  const columns = [
+    /*{ field: 'title', headerName: 'Title', width: 300, renderCell: (params) => (
+        <Link onClick={() => setSelectedSongId(params.row.song_id)}>{params.value}</Link>
+    ) },*/
+    //{ field: 'title', headerName: 'Title', width: 300, renderCell: (params) => ()},
+    { field: 'name', headerName: 'Name of Business' }
+    /*{ field: 'energy', headerName: 'Energy' },
+    { field: 'valence', headerName: 'Valence' },
+    { field: 'tempo', headerName: 'Tempo' },
+    { field: 'key_mode', headerName: 'Key' },
+    { field: 'explicit', headerName: 'Explicit' },*/
+  ]
+
   // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
   // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
   // (optionally has spacing prop that specifies the distance between grid items). Then, enclose whatever
@@ -66,7 +84,7 @@ export default function RestaurantsPage() {
   // will automatically lay out all the grid items into rows based on their xs values.
   return (
     <Container>
-      <h2>Search</h2>
+      <h2>Enter Your Current Location...</h2>
       <Container 
         sx={{
           border: 1,
@@ -94,25 +112,16 @@ export default function RestaurantsPage() {
           </Button>
         </Box>
       </Container>
-      <h2>Restaurants</h2>
-      {loaded
-        ? 
-          <Grid container spacing={2}>
-            {data.map((value, i) => (
-              <Grid key={i} item xs={6} md={4}>
-                <RestaurantCard 
-                  key={i}
-                  business_id={value.business_id}
-                  name={value.name}
-                  stars={value.stars}
-                  review_count={value.review_count}
-                  dist={value.dist}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        : <LinearProgress />
-      }
+      <h2>Planned Itinerary</h2>
+      {/* Notice how similar the DataGrid component is to our LazyTable! What are the differences? */}
+      <DataGrid
+        rows={data}
+        columns={columns}
+        //pageSize={pageSize}
+        //rowsPerPageOptions={[5, 10, 25]}
+        //onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+        autoHeight
+      />
     </Container>
   );
 };

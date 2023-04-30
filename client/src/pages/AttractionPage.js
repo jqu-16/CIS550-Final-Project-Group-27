@@ -7,10 +7,11 @@ import { DataGrid } from '@mui/x-data-grid';
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
 import RestaurantCard from '../components/RestaurantCard';
+import AttractionCard from '../components/AttractionCard';
 
 const config = require('../config.json');
 
-export default function RestaurantsPage() {
+export default function AttractionPage() {
   const [data, setData] = useState([]);
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
@@ -19,11 +20,11 @@ export default function RestaurantsPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    fetch(`http://${config.server_host}:${config.server_port}/closest`)
+    fetch(`http://${config.server_host}:${config.server_port}/closestAttraction`)
       .then(res => res.json())
       .then(resJson => {
-        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
-        setData(businessesWithId);
+        //const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        setData(resJson.name);
         setTimeout(() => {
           setLoaded(true);
         }, 200);
@@ -32,7 +33,7 @@ export default function RestaurantsPage() {
 
   const search = () => {
     setLoaded(false);
-    fetch(`http://${config.server_host}:${config.server_port}/closest?lat=${lat}` +
+    fetch(`http://${config.server_host}:${config.server_port}/closestAttraction?lat=${lat}` +
       `&lon=${lon}` +
       `&dist=${dist}`
     )
@@ -94,18 +95,16 @@ export default function RestaurantsPage() {
           </Button>
         </Box>
       </Container>
-      <h2>Restaurants</h2>
+      <h2>Attractions</h2>
       {loaded
         ? 
           <Grid container spacing={2}>
             {data.map((value, i) => (
               <Grid key={i} item xs={6} md={4}>
-                <RestaurantCard 
+                <AttractionCard 
                   key={i}
                   business_id={value.business_id}
                   name={value.name}
-                  stars={value.stars}
-                  review_count={value.review_count}
                   dist={value.dist}
                 />
               </Grid>
