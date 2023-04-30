@@ -17,6 +17,7 @@ app.get('/todo', routes.todo);
 app.get('/closestAttraction', routes.closestAttraction);
 app.get('/author/:type', routes.author);
 app.get('/random', routes.random);
+app.get('/topRestaurants', routes.topRestaurants);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)
