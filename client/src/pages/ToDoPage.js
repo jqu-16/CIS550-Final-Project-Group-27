@@ -12,6 +12,7 @@ const config = require('../config.json');
 
 export default function ToDoPage() {
   const [data, setData] = useState([]);
+  const [data2, setData2] = useState([]);
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [dist, setDist] = useState('');
@@ -25,9 +26,14 @@ export default function ToDoPage() {
         console.log(resJson);
         const businessesWithId = resJson.map((business, index) => ({ id: index, ...business }));
         setData(businessesWithId);
-        setTimeout(() => {
-          setLoaded(true);
-        }, 200);
+        console.log("break 1");
+        fetch(`http://${config.server_host}:${config.server_port}/elitetop`)
+          .then(res2 => res2.json())
+          .then(resJson2 => {
+            console.log(resJson2);
+            const topBusiness = resJson2.map((business, index) => ({id: index, ...business}));
+            setData2(topBusiness);
+          });
       });
   }, []);
 
@@ -48,9 +54,15 @@ export default function ToDoPage() {
         // http://localhost:8080/todo?lat=29.954421&lon=-90.066475&dist=10
         const businessesWithId = resJson.map((business, index) => ({ id: index, ...business }));
         setData(businessesWithId);
-        setTimeout(() => {
-          setLoaded(true);
-        }, 200);
+        fetch(`http://${config.server_host}:${config.server_port}/elitetop?lat=${lat} +
+          &lon=${lon} +
+          &dist=${dist}`)
+          .then(res2 => res2.json())
+          .then(resJson2 => {
+            console.log(resJson2);
+            const topBusiness = resJson2.map((business, index) => ({id: index, ...business}));
+            setData2(topBusiness);
+          });
       });
   };
 
@@ -106,11 +118,11 @@ export default function ToDoPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell key='#'>Itinerary</TableCell>
-              <TableCell key='r'>Business</TableCell>
-              <TableCell key='a1'>Attraction 1</TableCell>
-              <TableCell key='a2'>Attraction 2</TableCell>
-              <TableCell key='a3'>Attraction 3</TableCell>
+              <TableCell key='#' style={{ fontStyle: 'italic' }}>Itinerary</TableCell>
+              <TableCell key='r' style={{ fontStyle: 'italic' }}>Business</TableCell>
+              <TableCell key='a1' style={{ fontStyle: 'italic' }}>Attraction 1</TableCell>
+              <TableCell key='a2' style={{ fontStyle: 'italic' }}>Attraction 2</TableCell>
+              <TableCell key='a3' style={{ fontStyle: 'italic' }}>Attraction 3</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -126,6 +138,33 @@ export default function ToDoPage() {
                   <TableCell key='a1'>{data[idx].W1name}</TableCell>
                   <TableCell key='a2'>{data[idx].W2name}</TableCell>
                   <TableCell key='a3'>{data[idx].W3name}</TableCell>
+                </TableRow>
+              )
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <h2>Nearby Top Rated Businesses by Yelp Elites</h2>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell key='a1' style={{ fontStyle: 'italic' }}>Name</TableCell>
+              <TableCell key='a2' style={{ fontStyle: 'italic' }}>Type</TableCell>
+              <TableCell key='a3' style={{ fontStyle: 'italic' }}>Average Rating</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {
+              // TODO (TASK 23): render the table content by mapping the songData array to <TableRow> elements
+              // Hint: the skeleton code for the very first row is provided for you. Fill out the missing information and then use a map function to render the rest of the rows.
+              // Hint: it may be useful to refer back to LazyTable.js
+              // this maps each entry of songData to a row
+              data2.map((row, idx) =>
+                <TableRow key={idx}>
+                  <TableCell key='a1'>{data2[idx].name}</TableCell>
+                  <TableCell key='a2'>{data2[idx].category_name}</TableCell>
+                  <TableCell key='a3'>{data2[idx].star.toFixed(2)}</TableCell>
                 </TableRow>
               )
             }
