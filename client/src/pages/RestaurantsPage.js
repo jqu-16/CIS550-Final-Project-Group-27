@@ -66,6 +66,24 @@ export default function RestaurantsPage() {
       });
   };
 
+  const searchTakeout = () => {
+    setLoaded(false);
+    fetch(`http://${config.server_host}:${config.server_port}/takeout?lat=${lat}` +
+      `&lon=${lon}` +
+      `&dist=${dist}`
+    )
+      .then(res => res.json())
+      .then(resJson => {
+        // DataGrid expects an array of objects with a unique id.
+        // To accomplish this, we use a map with spread syntax (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
+        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        setData(businessesWithId);
+        setTimeout(() => {
+          setLoaded(true);
+        }, 200);
+      });
+  };
+
   const handleSearchClick = () => {
     if (lat !== '' && lon !== '' && dist !== '') {
       setErrorMessage('');
@@ -74,11 +92,13 @@ export default function RestaurantsPage() {
       setErrorMessage('Please fill out all fields.')
     }
   };
-
   const handleTopClick = () => {
     searchTop();
   };
 
+  const handleTakeoutClick = () => {
+    searchTakeout();
+  };
   // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
   // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
   // (optionally has spacing prop that specifies the distance between grid items). Then, enclose whatever
@@ -120,10 +140,17 @@ export default function RestaurantsPage() {
       {/* <h2>Restaurants <Link to="/top_restaurants" style={{color: 'blue'}}>link to another page</Link></h2> */}
       <h2>Restaurants</h2>
       <Typography variant="body1">
+      <Button component={Link} to="/takeout" size='small' onClick={handleTakeoutClick} color="primary" variant="contained">
+    Find takeout options in the city!
+  </Button><br></br><br></br> 
   <Button component={Link} to="/topRestaurants" size='small' onClick={handleTopClick} color="primary" variant="contained">
     Explore Top Restaurants in the Country!
   </Button>
-</Typography><br></br>
+
+</Typography>
+
+
+<br></br>
       {loaded
         ? 
           <Grid container spacing={2}>

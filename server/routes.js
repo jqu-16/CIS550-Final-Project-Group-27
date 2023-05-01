@@ -220,20 +220,46 @@ const elitetop = async function(req, res) {
 // Route 1: GET /takeout
 const random = async function(req, res) {
   connection.query(`
-      SELECT b.business_id, b.name
+      SELECT *
       FROM Business b
       JOIN Parking p ON b.business_id = p.business_id
       WHERE p.RestaurantTakeOut = 1
+      LIMIT 3
     `), (err, data) => {
-    console.log(data);
-    if (err || data.length == 0) {
-      console.log(err);
-      res.json({
-
-      })
-    }
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
 
   }
+}
+
+const takeout = async function(req, res) {
+
+  const lat = req.query.lat === '' || req.query.lat === null ? 39.9526 : req.query.lat;
+  const lon = req.query.lon === '' || req.query.lon === null ? -75.1652 : req.query.lon;
+  const dist = req.query.dist === '' || req.query.dist === null ? 10 : req.query.dist;
+  connection.query(`
+  SELECT *, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
+  FROM Business b
+  JOIN Parking p ON b.business_id = p.business_id
+  JOIN Location L ON b.business_id = L.business_id
+  JOIN Category c ON b.business_id = c.business_id
+  WHERE c.category_name LIKE 'Restaurants'
+  AND p.RestaurantTakeOut = 1
+  AND (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) < ${dist}
+  ORDER BY dist ASC
+  LIMIT 18`
+    , (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
 }
 
 // GET /author/:type
@@ -265,5 +291,6 @@ module.exports = {
   closestAttraction,
   elitetop,
   random,
-  topRestaurants
+  topRestaurants,
+  takeout
 }
