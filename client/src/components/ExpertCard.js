@@ -10,7 +10,7 @@ import {
   import CircleIcon from '@mui/icons-material/Circle';
   import { useNavigate } from 'react-router-dom';
 
-  function RestaurantCard(props) {
+  function ExpertCard(props) {
     const navigate = useNavigate();
     const navRestaurant = () => {
       navigate(`/business/${props.business_id}`);
@@ -34,7 +34,7 @@ import {
               }}
             >
               <Stack spacing={0.5}>
-              {props.category !== undefined && props.experts_count !== undefined && <h2>{props.category}</h2>}
+              {props.category !== undefined && <h2>{props.category}</h2>}
 
                 <Typography 
                   fontWeight={500}

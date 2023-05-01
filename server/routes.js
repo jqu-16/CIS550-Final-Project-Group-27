@@ -236,11 +236,13 @@ const random = async function(req, res) {
   }
 }
 
+
 const takeout = async function(req, res) {
 
-  const lat = req.query.lat === '' || req.query.lat === null ? 39.9526 : req.query.lat;
-  const lon = req.query.lon === '' || req.query.lon === null ? -75.1652 : req.query.lon;
-  const dist = req.query.dist === '' || req.query.dist === null ? 10 : req.query.dist;
+  const lat = typeof req.query.lat === 'undefined' || req.query.lat === '' || req.query.lat === null ? 39.9526 : req.query.lat;
+  const lon = typeof req.query.lat === 'undefined' || req.query.lon === '' || req.query.lon === null ? -75.1652 : req.query.lon;
+  const dist = typeof req.query.lat === 'undefined' || req.query.dist === '' || req.query.dist === null ? 10 : req.query.dist;
+
   connection.query(`
   SELECT *, (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - ${lon})) * 6371) as dist
   FROM Business b
@@ -282,6 +284,79 @@ const author = async function(req, res) {
   }
 }
 
+const expert = async function(req, res) {
+
+  const lat = typeof req.query.lat === 'undefined' || req.query.lat === '' || req.query.lat === null ? 39.9526 : req.query.lat;
+  const lon = typeof req.query.lat === 'undefined' || req.query.lon === '' || req.query.lon === null ? -75.1652 : req.query.lon;
+  const dist = typeof req.query.lat === 'undefined' || req.query.dist === '' || req.query.dist === null ? 10 : req.query.dist;
+
+  connection.query(`
+  WITH FilteredBusinesses AS (
+    SELECT
+      O.business_id,
+      O.name,
+      O.stars,
+      O.review_count,
+      O.is_open,
+      (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - (${lon}))) * 6371) AS dist
+    FROM
+      Business O
+    JOIN Location L ON O.business_id = L.business_id
+    JOIN Category c ON O.business_id = c.business_id
+    WHERE
+      ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - (${lon}))) * 6371 < ${dist}
+      AND c.category_name LIKE 'Restaurants'
+    ORDER BY
+  dist ASC
+ ),
+ CloseReviews AS (
+ SELECT R.*
+ FROM Review R
+ JOIN FilteredBusinesses ON R.business_id = FilteredBusinesses.business_id
+ ),
+ FilteredUsers AS (
+    SELECT user_id
+    FROM User
+    WHERE fans > 500
+ ),
+ FilteredReviews AS (
+  SELECT CR.business_id, COUNT(*) AS review_count
+  FROM CloseReviews CR
+  JOIN FilteredUsers ON CR.user_id = FilteredUsers.user_id
+  GROUP BY CR.business_id
+ ),
+ RankedRestaurants AS (
+    SELECT
+    B.*,
+    C.category_name,
+    FR.review_count AS experts_count,
+    RANK() OVER (PARTITION BY C.category_name ORDER BY FR.review_count DESC) AS ranking
+    FROM
+    FilteredBusinesses B
+    JOIN FilteredReviews FR ON B.business_id = FR.business_id
+    JOIN Category C ON B.business_id = C.business_id
+    WHERE
+    B.is_open = 1
+ )
+ SELECT *
+ FROM
+   RankedRestaurants
+ WHERE
+   ranking <= 3
+ ORDER BY
+   category_name,
+   ranking;`
+    , (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        // console.log(JSON.stringify(data))
+        res.json(data);
+      }
+    });
+}
+
 module.exports = {
   businesses,
   business,
@@ -292,5 +367,6 @@ module.exports = {
   elitetop,
   random,
   topRestaurants,
-  takeout
+  takeout,
+  expert
 }

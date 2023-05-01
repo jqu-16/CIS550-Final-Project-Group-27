@@ -66,6 +66,24 @@ export default function RestaurantsPage() {
       });
   };
 
+  const searchExpert = () => {
+    setLoaded(false);
+    fetch(`http://${config.server_host}:${config.server_port}/expert?lat=${lat}` +
+      `&lon=${lon}` +
+      `&dist=${dist}`
+    )
+      .then(res => res.json())
+      .then(resJson => {
+        // DataGrid expects an array of objects with a unique id.
+        // To accomplish this, we use a map with spread syntax (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
+        const businessesWithId = resJson.map((business) => ({ id: business.business_id, ...business }));
+        setData(businessesWithId);
+        setTimeout(() => {
+          setLoaded(true);
+        }, 200);
+      });
+  };
+
   const searchTakeout = () => {
     setLoaded(false);
     fetch(`http://${config.server_host}:${config.server_port}/takeout?lat=${lat}` +
@@ -98,6 +116,10 @@ export default function RestaurantsPage() {
 
   const handleTakeoutClick = () => {
     searchTakeout();
+  };
+
+  const handleExpertClick = () => {
+    searchExpert();
   };
   // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
   // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
@@ -143,6 +165,9 @@ export default function RestaurantsPage() {
       <Button component={Link} to="/takeout" size='small' onClick={handleTakeoutClick} color="primary" variant="contained">
     Find takeout options in the city!
   </Button><br></br><br></br> 
+  <Button component={Link} to="/expert" size='small' onClick={handleExpertClick} color="primary" variant="contained">
+    See where experts like to visit!
+  </Button><br></br><br></br> 
   <Button component={Link} to="/topRestaurants" size='small' onClick={handleTopClick} color="primary" variant="contained">
     Explore Top Restaurants in the Country!
   </Button>
@@ -163,7 +188,8 @@ export default function RestaurantsPage() {
                   stars={value.stars}
                   review_count={value.review_count}
                   dist={value.dist}
-                  city={value.city}
+                  experts_count={value.experts_count}
+                  category={value.category_name}
                 />
               </Grid>
             ))}
