@@ -357,6 +357,62 @@ const expert = async function(req, res) {
     });
 }
 
+const friends = async function(req, res) {
+
+  const lat = typeof req.query.lat === 'undefined' || req.query.lat === '' || req.query.lat === null ? 39.9526 : req.query.lat;
+  const lon = typeof req.query.lat === 'undefined' || req.query.lon === '' || req.query.lon === null ? -75.1652 : req.query.lon;
+  const dist = typeof req.query.lat === 'undefined' || req.query.dist === '' || req.query.dist === null ? 10 : req.query.dist;
+
+  connection.query(`
+  WITH FilteredBusinesses AS (
+    SELECT
+      O.business_id,
+      O.name,
+      O.stars,
+      O.review_count,
+      O.is_open,
+      (ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - (${lon}))) * 6371) AS dist
+    FROM
+      Business O
+    JOIN Location L ON O.business_id = L.business_id
+    JOIN Category c ON O.business_id = c.business_id
+    WHERE
+      ACOS(SIN(${lat}) * SIN(latitude) + COS(${lat}) * COS(latitude) * COS(longitude - (${lon}))) * 6371 < ${dist}
+      AND c.category_name LIKE 'Restaurants'
+    ORDER BY
+  dist ASC
+ ), CloseReviews AS (
+  SELECT R.*
+  FROM Review R
+  JOIN FilteredBusinesses ON R.business_id = FilteredBusinesses.business_id
+), UserWithManyFans AS (
+SELECT user_id
+FROM User
+WHERE fans > 1000
+),
+FriendsOfPopularUsers AS (
+SELECT DISTINCT friend_two AS user_id, COUNT(*) AS friendCount
+FROM FriendOf
+JOIN UserWithManyFans ON friend_one = UserWithManyFans.user_id
+JOIN CloseReviews ON CloseReviews.user_id = friend_one
+GROUP BY friend_two
+ORDER BY friendCount DESC
+LIMIT 30
+)
+SELECT *
+FROM User
+JOIN FriendsOfPopularUsers ON User.user_id = FriendsOfPopularUsers.user_id;`
+    , (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        // console.log(JSON.stringify(data))
+        res.json(data);
+      }
+    });
+}
+
 module.exports = {
   businesses,
   business,
@@ -368,5 +424,6 @@ module.exports = {
   random,
   topRestaurants,
   takeout,
-  expert
+  expert,
+  friends
 }

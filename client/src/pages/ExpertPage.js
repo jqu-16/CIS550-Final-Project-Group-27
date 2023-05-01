@@ -7,6 +7,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
 import ExpertCard from '../components/ExpertCard';
+import RestaurantCard from '../components/RestaurantCard';
 
 const config = require('../config.json');
 

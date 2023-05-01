@@ -9,6 +9,7 @@ import {
   } from '@mui/material';
   import CircleIcon from '@mui/icons-material/Circle';
   import { useNavigate } from 'react-router-dom';
+  import RestaurantCard from '../components/RestaurantCard';
 
   function ExpertCard(props) {
     const navigate = useNavigate();

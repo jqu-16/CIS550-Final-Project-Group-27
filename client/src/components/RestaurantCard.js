@@ -35,7 +35,6 @@ import {
             >
               <Stack spacing={0.5}>
               {props.category !== undefined && props.experts_count !== undefined && <h2>{props.category}</h2>}
-
                 <Typography 
                   fontWeight={500}
                   sx={{

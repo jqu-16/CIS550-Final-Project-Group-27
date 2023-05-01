@@ -13,6 +13,7 @@ import BusinessInfoPage from './pages/BusinessInfoPage';
 import RestaurantsPage from "./pages/RestaurantsPage";
 import AttractionPage from "./pages/AttractionPage";
 import ToDoPage from "./pages/ToDoPage";
+import ExpertPage from "./pages/ExpertPage";
 
 // createTheme enables you to customize the look and feel of your app past the default
 // in this case, we only change the color scheme
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/businesses" element={<BusinessesPage />} />
           <Route path="/todo" element={<ToDoPage />} />
+          <Route path="/expert" element={<ExpertPage />} />
           <Route path="/attractions" element={<AttractionPage />} />
           <Route path="/business/:business_id" element={<BusinessInfoPage />} />
         </Routes>
