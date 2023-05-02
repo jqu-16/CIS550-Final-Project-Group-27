@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography } from '@mui/material';
+import { Radio, RadioGroup, FormControl, FormLabel, Button, Checkbox, Container, FormControlLabel, Grid, Link, Slider, TextField, Box, Tabs, Tab, LinearProgress, Typography } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import AttractionsIcon from '@mui/icons-material/Attractions';
 import { NavLink } from 'react-router-dom';
@@ -7,15 +7,19 @@ import { DataGrid } from '@mui/x-data-grid';
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
 import RestaurantCard from '../components/RestaurantCard';
+import UserCard from '../components/UserCard';
 
 const config = require('../config.json');
 
 export default function RestaurantsPage() {
   const [data, setData] = useState([]);
+  const [influencers, setInfluencers] = useState([]);
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [dist, setDist] = useState('');
+  const [searchType, setSearchType] = useState('search');
   const [loaded, setLoaded] = useState(false);
+  const [influencersLoaded, setInfluencersLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -102,34 +106,42 @@ export default function RestaurantsPage() {
       });
   };
 
+  const getInfluencers = () => {
+    setInfluencersLoaded(false);
+    fetch(`http://${config.server_host}:${config.server_port}/friends?lat=${lat}` +
+      `&lon=${lon}` +
+      `&dist=${dist}`
+    )
+      .then(res => res.json())
+      .then(resJson => {
+        const temp = resJson.map((user) => ({ id: user.user_id, name: user.name, fans: user.fans, friendCount: user.friendCount }));
+        setInfluencers(temp);
+        setTimeout(() => {
+          setInfluencersLoaded(true);
+        }, 200);
+      });
+  };
+
   const handleSearchClick = () => {
     if (lat !== '' && lon !== '' && dist !== '') {
       setErrorMessage('');
-      search();
+      if (searchType === 'search') {
+        search();
+      } else if (searchType === 'searchTakeout') {
+        searchTakeout();
+      } else if (searchType === 'searchExpert') {
+        searchExpert();
+      } else if (searchType === 'searchTop') {
+        searchTop(); 
+      }
+      getInfluencers();
     } else {
       setErrorMessage('Please fill out all fields.')
     }
   };
-  const handleTopClick = () => {
-    searchTop();
-  };
 
-  const handleTakeoutClick = () => {
-    searchTakeout();
-  };
-
-  const handleExpertClick = () => {
-    searchExpert();
-  };
-  // This component makes uses of the Grid component from MUI (https://mui.com/material-ui/react-grid/).
-  // The Grid component is super simple way to create a page layout. Simply make a <Grid container> tag
-  // (optionally has spacing prop that specifies the distance between grid items). Then, enclose whatever
-  // component you want in a <Grid item xs={}> tag where xs is a number between 1 and 12. Each row of the
-  // grid is 12 units wide and the xs attribute specifies how many units the grid item is. So if you want
-  // two grid items of the same size on the same row, define two grid items with xs={6}. The Grid container
-  // will automatically lay out all the grid items into rows based on their xs values.
   return (
-    <Container>
+    <Container sx={{pb: '35px'}}>
       <h2>Search</h2>
       <Container 
         sx={{
@@ -151,6 +163,19 @@ export default function RestaurantsPage() {
           <Grid item xs={4}>
             <TextField variant='standard' size='small' name='dist_field' label='Distance (km)' value={dist} onChange={(e) => setDist(e.target.value)} style={{ width: "100%" }}/>
           </Grid>
+          <Grid item xs={4}>
+          <FormControl>
+            <RadioGroup
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+            >
+              <FormControlLabel value="search" control={<Radio />} label="All restaurants" />
+              <FormControlLabel value="searchTakeout" control={<Radio />} label="Takeout" />
+              <FormControlLabel value="searchExpert" control={<Radio />} label="Visited by experts" />
+              <FormControlLabel value="searchTop" control={<Radio />} label="Top restaurants" />
+            </RadioGroup>
+          </FormControl>
+          </Grid>
         </Grid>
         <Box sx={{mt: '20px'}}>
           <Button variant='contained' size='small' disableElevation onClick={handleSearchClick}>
@@ -158,24 +183,7 @@ export default function RestaurantsPage() {
           </Button>
         </Box>
       </Container>
-
-      {/* <h2>Restaurants <Link to="/top_restaurants" style={{color: 'blue'}}>link to another page</Link></h2> */}
       <h2>Restaurants</h2>
-      <Typography variant="body1">
-      <Button component={Link} to="/takeout" size='small' onClick={handleTakeoutClick} color="primary" variant="contained">
-    Find takeout options in the city!
-  </Button><br></br><br></br> 
-  <Button component={Link} to="/expert" size='small' onClick={handleExpertClick} color="primary" variant="contained">
-    See where experts like to visit!
-  </Button><br></br><br></br> 
-  <Button component={Link} to="/topRestaurants" size='small' onClick={handleTopClick} color="primary" variant="contained">
-    Explore Top Restaurants in the Country!
-  </Button>
-
-</Typography>
-
-
-<br></br>
       {loaded
         ? 
           <Grid container spacing={2}>
@@ -195,6 +203,24 @@ export default function RestaurantsPage() {
             ))}
           </Grid>
         : <LinearProgress />
+      }
+      <h2>Influencers</h2>
+      {influencersLoaded
+        ? 
+          <Grid container spacing={2}>
+            {influencers.map((value, i) => (
+              <Grid key={i} item xs={6} md={4}>
+                <UserCard 
+                  key={i}
+                  id={value.id}
+                  name={value.name}
+                  fans={value.fans}
+                  friendCount={value.friendCount}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        : <LinearProgress color='secondary' />
       }
     </Container>
   );
