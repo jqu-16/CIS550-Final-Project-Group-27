@@ -32,6 +32,15 @@ export default function RestaurantsPage() {
           setLoaded(true);
         }, 200);
       });
+    fetch(`http://${config.server_host}:${config.server_port}/friends`)
+      .then(res => res.json())
+      .then(resJson => {
+        const temp = resJson.map((user) => ({ id: user.user_id, name: user.name, fans: user.fans, friendCount: user.friendCount }));
+        setInfluencers(temp);
+        setTimeout(() => {
+          setInfluencersLoaded(true);
+        }, 200);
+      });
   }, []);
 
   const search = () => {
