@@ -180,7 +180,7 @@ export default function RestaurantsPage() {
             >
               <FormControlLabel value="search" control={<Radio />} label="All restaurants" />
               <FormControlLabel value="searchTakeout" control={<Radio />} label="Takeout" />
-              <FormControlLabel value="searchExpert" control={<Radio />} label="Visited by experts" />
+              <FormControlLabel value="searchExpert" control={<Radio />} label="Visited by experts (by category)" />
               <FormControlLabel value="searchTop" control={<Radio />} label="Top restaurants" />
             </RadioGroup>
           </FormControl>

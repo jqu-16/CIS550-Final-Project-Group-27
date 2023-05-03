@@ -186,27 +186,28 @@ const elitetop = async function(req, res) {
   const lon = req.query.lon ?? -75.1652;
   connection.query(`
   WITH WithinDistanceBusinessTemp AS (SELECT B.business_id, name
-  FROM Business B JOIN Location L ON B.business_id = L.business_id
-  WHERE L.latitude <= ${lat} + ${dist}/111 AND L.latitude >= ${lat} - ${dist}/111 AND L.longitude <= ${lon} + ${dist}/111 AND ${lon} >= -75.1652 - ${dist}/111),
-  
-  wdbtemp2 AS (SELECT O.business_id, O.name, L.latitude * PI()/180 AS latitude, L.longitude * PI()/180 AS longitude
-  FROM WithinDistanceBusinessTemp O JOIN Location L ON O.business_id = L.business_id
-  WHERE ACOS(SIN(${lat} * PI()/180) * SIN(latitude * PI()/180) + COS(${lat} * PI()/180) * COS(latitude * PI()/180) * COS((longitude - ${lon}) * PI()/180)) * 6371 < 10)
-  
-  SELECT temp2.business_id, temp2.name, c.category_name, temp2.star
-  FROM (SELECT temp.business_id, temp.name, AVG(temp.stars) AS star
-  FROM (SELECT b.name, b.business_id, r.user_id, r.stars
-  FROM wdbtemp2 b
-  JOIN Review r ON b.business_id = r.business_id) temp
-  WHERE temp.user_id IN
-  (SELECT e.user_id
-  FROM Elite e)
-  GROUP BY temp.business_id
-  HAVING AVG(temp.stars) > 4.0
-  LIMIT 100) temp2
-  JOIN Category c ON temp2.business_id = c.business_id
-  ORDER BY RAND()
-  LIMIT 5`
+    FROM Business B JOIN Location L ON B.business_id = L.business_id
+    WHERE L.latitude <= ${lat} + ${dist}/111 AND L.latitude >= ${lat} - ${dist}/111 AND L.longitude <= ${lon} + ${dist}/111 AND ${lon} >= L.longitude - ${dist}/111),
+    
+    wdbtemp2 AS (SELECT O.business_id, O.name, L.latitude * PI()/180 AS latitude, L.longitude * PI()/180 AS longitude
+    FROM WithinDistanceBusinessTemp O JOIN Location L ON O.business_id = L.business_id
+    WHERE ACOS(SIN(${lat} * PI()/180) * SIN(latitude * PI()/180) + COS(${lat} * PI()/180) * COS(latitude * PI()/180) * COS((longitude - ${lon}) * PI()/180)) * 6371 < 10)
+    
+    SELECT DISTINCT c.business_id, temp2.name, GROUP_CONCAT(c.category_name SEPARATOR ', ') AS category_name, temp2.star
+    FROM (SELECT DISTINCT temp.business_id, temp.name, AVG(temp.stars) AS star
+    FROM (SELECT b.name, b.business_id, r.user_id, r.stars
+    FROM wdbtemp2 b
+    JOIN Review r ON b.business_id = r.business_id) temp
+    WHERE temp.user_id IN
+    (SELECT e.user_id
+    FROM Elite e)
+    GROUP BY temp.business_id
+    HAVING AVG(temp.stars) > 4.0
+    LIMIT 10) temp2
+    JOIN Category c ON temp2.business_id = c.business_id
+    GROUP BY c.business_id
+    ORDER BY RAND()
+    LIMIT 5`
     , (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
