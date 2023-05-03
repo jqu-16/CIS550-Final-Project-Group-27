@@ -27,13 +27,14 @@ export default function ToDoPage() {
         const businessesWithId = resJson.map((business, index) => ({ id: index, ...business }));
         setData(businessesWithId);
         console.log("break 1");
-        fetch(`http://${config.server_host}:${config.server_port}/elitetop`)
-          .then(res2 => res2.json())
-          .then(resJson2 => {
-            console.log(resJson2);
-            const topBusiness = resJson2.map((business, index) => ({id: index, ...business}));
-            setData2(topBusiness);
-          });
+      });
+
+      fetch(`http://${config.server_host}:${config.server_port}/elitetop`)
+      .then(res2 => res2.json())
+      .then(resJson2 => {
+        console.log(resJson2);
+        const topBusiness = resJson2.map((business, index) => ({id: index, ...business}));
+        setData2(topBusiness);
       });
   }, []);
 
