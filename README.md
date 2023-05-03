@@ -5,3 +5,5 @@ In this project, we will help tourists explore food and attractions in tandem. A
 We take data from Yelp for food, and from MyGeoData for attractions.
 
 The queries folder stores the queries we will execute, and the preprocessing folder stores our data preprocessing.
+
+To run this application, run npm install in both the server and client. Then, run npm start.
